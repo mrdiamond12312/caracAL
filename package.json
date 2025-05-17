@@ -10,7 +10,7 @@
   "author": "number_e",
   "license": "MIT",
   "dependencies": {
-    "bot-web-interface": "^2.0.14",
+    "bot-web-interface": "github:mrdiamond12312/bot-web-interface",
     "cloneable-readable": "^3.0.0",
     "inquirer": "^8.2.6",
     "jquery": "^3.7.1",
