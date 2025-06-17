@@ -106,9 +106,6 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
         console.log("terminating self");
         vm.runInContext("on_destroy()", runner_context);
         process.exit();
-        //vscode says this is unreachable.
-        //with how whack node is better be safe
-        break;
     }
   });
 
@@ -276,7 +273,7 @@ async function make_game(proc_args) {
     }
   });
   vm.runInContext("the_game()", game_context);
-  const reload_timeout = 14;
+  const reload_timeout = 60;
   const reload_task = setTimeout(
     function () {
       console.warn(

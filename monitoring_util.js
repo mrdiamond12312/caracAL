@@ -72,12 +72,12 @@ function create_monitor_ui(bwi, char_name, child_block, enable_map) {
   child_block.instance.on("message", (m) => {
     if (m.type == "stat_beat") {
       gold_histo.push(m.gold);
-      gold_histo = gold_histo.slice(-100);
+      gold_histo = gold_histo.slice(-2400);
       if (last_beat && last_beat.level != m.level) {
         xp_histo = [];
       }
       xp_histo.push(m.xp);
-      xp_histo = xp_histo.slice(-100);
+      xp_histo = xp_histo.slice(-2400);
       xp_ph = val_ph(xp_histo);
       last_beat = m;
     }
@@ -113,7 +113,7 @@ function create_monitor_ui(bwi, char_name, child_block, enable_map) {
     {
       name: "class",
       type: "text",
-      label: "Name",
+      label: "Class",
       getter: () => CLASS_TRANSFORMER[last_beat.ctype],
     },
     {
@@ -183,7 +183,7 @@ function create_monitor_ui(bwi, char_name, child_block, enable_map) {
       name: "gold",
       type: "text",
       label: "Gold",
-      getter: () => humanize_int(last_beat.gold, 1),
+      getter: () => last_beat.gold.toLocaleString("en-US"),
     },
     {
       name: "party_leader",
