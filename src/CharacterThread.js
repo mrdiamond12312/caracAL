@@ -273,7 +273,7 @@ async function make_game(proc_args) {
     }
   });
   vm.runInContext("the_game()", game_context);
-  const reload_timeout = 14;
+  const reload_timeout = 30;
   const reload_task = setTimeout(
     function () {
       console.warn(
