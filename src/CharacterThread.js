@@ -167,6 +167,8 @@ async function make_game(proc_args) {
   //expose the block under parent.caracAL
   const extensions = {};
 
+  game_context.ALPathfinder = await import("alpathfinder");
+
   extensions.log = LogUtils.log;
 
   extensions.deploy = function (char_name, realm, script_file, game_version) {
