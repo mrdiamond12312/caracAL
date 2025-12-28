@@ -82,6 +82,7 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
       data,
     });
   };
+  upper.caracAL.ALPathfinder = await import("alpathfinder");
   //we need to do this here because of scoping
   upper.caracAL.load_scripts = async function (locations) {
     if (!is_typescript) {
@@ -166,8 +167,6 @@ async function make_game(proc_args) {
 
   //expose the block under parent.caracAL
   const extensions = {};
-
-  game_context.ALPathfinder = await import("alpathfinder");
 
   extensions.log = LogUtils.log;
 
