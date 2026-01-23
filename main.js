@@ -4,7 +4,12 @@ const StreamMultiplexer = require("./src/StreamMultiplexer");
 const fs = require("fs");
 
 async function get_webpack_started(cfg) {
-  fs.rmSync("./TYPECODE.out", { recursive: true });
+  try {
+    fs.rmSync("./TYPECODE.out", { recursive: true });
+  } catch (error) {
+    //Sometimes throws if file doesnt exist
+    //We want it to not exist, so we ignore it
+  }
   if (cfg.enable_TYPECODE) {
     //TODO make this configurable
     const webpack_log_output = [
