@@ -70,11 +70,32 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
   //its an html file but not labeled as such
   //TODO in the future i should consider parsing the relevant parts out of the html files directly
   //for the runners as well as the instances
-  vm.runInContext(`
+  vm.runInContext(
+    `
     var active=false,catch_errors=true,is_code=1,is_server=0,is_game=0,is_bot=parent.is_bot,is_cli=parent.is_cli,is_sdk=parent.is_sdk;
     var Place='game';
     var transporting=false;var Dev=''; 
     var Local='';`,
+    runner_context,
+  );
+
+  vm.runInContext(
+    `
+  (function() {
+    const originalDefine = Object.defineProperty;
+
+    Object.defineProperty = function(obj, prop, descriptor) {
+      if (
+        obj === String.prototype &&
+        prop === "hashCode" &&
+        Object.prototype.hasOwnProperty.call(String.prototype, "hashCode")
+      ) {
+        return obj; // ignore duplicate
+      }
+      return originalDefine(obj, prop, descriptor);
+    };
+  })();
+`,
     runner_context,
   );
   await ev_files(runner_sources, runner_context);
@@ -162,9 +183,9 @@ async function make_game(proc_args) {
   game_context.bowser = {};
   await ev_files(game_sources, game_context);
   game_context.VERSION = "" + game_context.G.version;
-  game_context.Local="";
-  game_context.Dev="";
-  game_context.Place="code";
+  game_context.Local = "";
+  game_context.Dev = "";
+  game_context.Place = "code";
   game_context.server_address = "wss://" + proc_args.realm_address;
   game_context.server_path = proc_args.realm_path;
   game_context.server_port = proc_args.realm_port;
