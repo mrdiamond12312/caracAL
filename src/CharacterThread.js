@@ -70,8 +70,11 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
   //its an html file but not labeled as such
   //TODO in the future i should consider parsing the relevant parts out of the html files directly
   //for the runners as well as the instances
-  vm.runInContext(
-    "var active=false,catch_errors=true,is_code=1,is_server=0,is_game=0,is_bot=parent.is_bot,is_cli=parent.is_cli,is_sdk=parent.is_sdk;",
+  vm.runInContext(`
+    var active=false,catch_errors=true,is_code=1,is_server=0,is_game=0,is_bot=parent.is_bot,is_cli=parent.is_cli,is_sdk=parent.is_sdk;
+    var Place='game';
+    var transporting=false;var Dev=''; 
+    var Local='';`,
     runner_context,
   );
   await ev_files(runner_sources, runner_context);
@@ -159,7 +162,11 @@ async function make_game(proc_args) {
   game_context.bowser = {};
   await ev_files(game_sources, game_context);
   game_context.VERSION = "" + game_context.G.version;
-  game_context.server_addr = proc_args.realm_addr;
+  game_context.Local="";
+  game_context.Dev="";
+  game_context.Place="code";
+  game_context.server_address = "wss://" + proc_args.realm_address;
+  game_context.server_path = proc_args.realm_path;
   game_context.server_port = proc_args.realm_port;
   game_context.user_id = proc_args.sess.split("-")[0];
   game_context.user_auth = proc_args.sess.split("-")[1];
@@ -198,6 +205,7 @@ async function make_game(proc_args) {
     //people reported bad performance when switching maps
     //and this allegedly fixes it.
     vm.runInContext("pause()", game_context);
+    vm.runInContext(`var Place = "game";`, game_context);
 
     const is_typescript =
       proc_args.typescript_file && proc_args.typescript_file.length > 0;
