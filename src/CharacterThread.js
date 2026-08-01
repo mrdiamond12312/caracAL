@@ -248,13 +248,23 @@ async function make_game(proc_args) {
       ? "./TYPECODE.out/" + proc_args.typescript_file
       : "./CODE/" + proc_args.script_file;
     (async function () {
-      const runner_context = await make_runner(
-        game_context,
-        target_script,
-        proc_args.version,
-        is_typescript,
-      );
-      extensions.runner = runner_context;
+      try {
+        const runner_context = await make_runner(
+          game_context,
+          target_script,
+          proc_args.version,
+          is_typescript,
+        );
+        extensions.runner = runner_context;
+      } catch (exception) {
+        //without a runner the character is connected but inert, so take it down
+        console.error(
+          "failed to construct runner instance from %s:\n",
+          target_script,
+          exception,
+        );
+        process.send({ type: "shutdown" });
+      }
     })();
   };
   const old_dc = game_context.disconnect;
