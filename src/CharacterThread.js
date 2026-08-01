@@ -1,6 +1,7 @@
 const vm = require("vm");
 const io = require("socket.io-client");
 const fs = require("fs").promises;
+const fs_sync = require("fs");
 const { JSDOM } = require("jsdom");
 const node_query = require("jquery");
 const game_files = require("../game_files");
@@ -59,6 +60,16 @@ async function ev_files(locations, context) {
   }
 }
 
+//synchronous counterpart of ev_files
+//used by load_scripts so it matches the semantics of the in-game load_code,
+//which evaluates the loaded slot before returning to the caller
+function ev_files_sync(locations, context) {
+  for (let location of locations) {
+    let text = fs_sync.readFileSync(location, "utf8");
+    vm.runInContext(text + "\n//# sourceURL=file://" + location, context);
+  }
+}
+
 async function make_runner(upper, CODE_file, version, is_typescript) {
   const runner_sources = game_files
     .get_runner_files()
@@ -108,14 +119,17 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
   };
   upper.caracAL.ALPathfinder = await import("alpathfinder");
   //we need to do this here because of scoping
-  upper.caracAL.load_scripts = async function (locations) {
+  upper.caracAL.load_scripts = function (locations) {
     if (!is_typescript) {
-      return await ev_files(
+      ev_files_sync(
         locations.map((x) => "./CODE/" + x),
         runner_context,
       );
+      //the scripts are already evaluated by this point
+      //the promise is only here so existing .then() call sites keep working
+      return Promise.resolve();
     } else {
-      throw new Exception(
+      throw new Error(
         "Runtime Loading Code is not supported in Typescript Mode.\nUse an import instead",
       );
     }

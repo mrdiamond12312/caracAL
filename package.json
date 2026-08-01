@@ -11,7 +11,7 @@
   "author": "number_e",
   "license": "MIT",
   "dependencies": {
-    "alpathfinder": "^0.2.8",
+    "alpathfinder": "^0.4.0",
     "bot-web-interface": "github:mrdiamond12312/bot-web-interface",
     "cloneable-readable": "^3.0.0",
     "inquirer": "^8.2.6",
