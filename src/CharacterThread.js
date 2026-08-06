@@ -70,6 +70,44 @@ function ev_files_sync(locations, context) {
   }
 }
 
+//TEMPORARY: AL's clone() throws the bare string "type not supported", which
+//carries no stack. Wrap it to report the offending value and a real call site.
+//Remove once the source is identified.
+function instrument_clone(context, realm) {
+  vm.runInContext(
+    `
+    (function () {
+      const original = clone;
+      let reported = false;
+      clone = function (obj, args) {
+        try {
+          return original(obj, args);
+        } catch (e) {
+          if (e === "type not supported" && !reported) {
+            reported = true;
+            let keys;
+            try {
+              keys = Object.keys(obj).slice(0, 12).join(",");
+            } catch (_) {
+              keys = "<unreadable>";
+            }
+            console.error(
+              "clone() rejected a value in the ${realm} realm\\ntag: %s\\nproto: %s\\nkeys: %s\\n%s",
+              Object.prototype.toString.call(obj),
+              String(Object.getPrototypeOf(obj)),
+              keys,
+              new Error("clone call site").stack,
+            );
+          }
+          throw e;
+        }
+      };
+    })();
+    `,
+    context,
+  );
+}
+
 async function make_runner(upper, CODE_file, version, is_typescript) {
   const runner_sources = game_files
     .get_runner_files()
@@ -110,6 +148,7 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
     runner_context,
   );
   await ev_files(runner_sources, runner_context);
+  instrument_clone(runner_context, "runner");
   runner_context.send_cm = function (to, data) {
     process.send({
       type: "cm",
@@ -196,6 +235,7 @@ async function make_game(proc_args) {
   game_context.io = io;
   game_context.bowser = {};
   await ev_files(game_sources, game_context);
+  instrument_clone(game_context, "game");
   game_context.VERSION = "" + game_context.G.version;
   game_context.Local = "";
   game_context.Dev = "";
