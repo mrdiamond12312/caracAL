@@ -70,37 +70,43 @@ function ev_files_sync(locations, context) {
   }
 }
 
-//TEMPORARY: AL's clone() throws the bare string "type not supported", which
-//carries no stack. Wrap it to report the offending value and a real call site.
-//Remove once the source is identified.
-function instrument_clone(context, realm) {
+//AL's clone() gates on `instanceof Date/Array/Object`, which is unsound here:
+//the game and runner run in separate vm realms, so a game-realm object fails
+//every check and falls through to `throw "type not supported"`. Scripts hit this
+//by passing parent.G/parent.entities into runner-side AL functions.
+function patch_cross_realm_clone(context) {
   vm.runInContext(
     `
     (function () {
       const original = clone;
-      let reported = false;
       clone = function (obj, args) {
-        try {
+        if (obj === null || typeof obj !== "object" || obj instanceof Object) {
           return original(obj, args);
-        } catch (e) {
-          if (e === "type not supported" && !reported) {
-            reported = true;
-            let keys;
-            try {
-              keys = Object.keys(obj).slice(0, 12).join(",");
-            } catch (_) {
-              keys = "<unreadable>";
-            }
-            console.error(
-              "clone() rejected a value in the ${realm} realm\\ntag: %s\\nproto: %s\\nkeys: %s\\n%s",
-              Object.prototype.toString.call(obj),
-              String(Object.getPrototypeOf(obj)),
-              keys,
-              new Error("clone call site").stack,
-            );
-          }
-          throw e;
         }
+        //recurse through this wrapper so nested values are handled too
+        if (!args) args = {};
+        if (!args.seen) args.seen = [];
+        args.seen.push(obj);
+        if (Object.prototype.toString.call(obj) === "[object Date]") {
+          const copy = new Date();
+          copy.setTime(obj.getTime());
+          return copy;
+        }
+        if (Array.isArray(obj)) {
+          const copy = [];
+          for (let i = 0; i < obj.length; i++) copy[i] = clone(obj[i], args);
+          return copy;
+        }
+        const copy = {};
+        for (const attr in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, attr)) {
+            copy[attr] =
+              args.seen.indexOf(obj[attr]) !== -1
+                ? "circular_attribute[clone]"
+                : clone(obj[attr], args);
+          }
+        }
+        return copy;
       };
     })();
     `,
@@ -148,7 +154,7 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
     runner_context,
   );
   await ev_files(runner_sources, runner_context);
-  instrument_clone(runner_context, "runner");
+  patch_cross_realm_clone(runner_context);
   runner_context.send_cm = function (to, data) {
     process.send({
       type: "cm",
@@ -235,7 +241,7 @@ async function make_game(proc_args) {
   game_context.io = io;
   game_context.bowser = {};
   await ev_files(game_sources, game_context);
-  instrument_clone(game_context, "game");
+  patch_cross_realm_clone(game_context);
   game_context.VERSION = "" + game_context.G.version;
   game_context.Local = "";
   game_context.Dev = "";
