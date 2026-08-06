@@ -322,7 +322,16 @@ async function make_game(proc_args) {
   game_context.api_call = function (method, args, r_args) {
     //servers and characters are handled centrally
     if (method != "servers_and_characters") {
-      return old_api(method, args, r_args);
+      const call = old_api(method, args, r_args);
+      //the jsdom window holds no session cookie, so every /api call comes back
+      //not_logged_in. the game discards most of these results, which would
+      //surface as unhandledRejection noise - handle them here instead.
+      if (call && typeof call.catch == "function") {
+        call.catch((reason) =>
+          console.debug("api call %s failed", method, reason),
+        );
+      }
+      return call;
     } else {
       console.debug("filtered s&c call");
     }
