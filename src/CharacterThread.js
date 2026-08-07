@@ -1,6 +1,7 @@
 const vm = require("vm");
 const io = require("socket.io-client");
 const fs = require("fs").promises;
+const fs_sync = require("fs");
 const { JSDOM } = require("jsdom");
 const node_query = require("jquery");
 const game_files = require("../game_files");
@@ -59,6 +60,60 @@ async function ev_files(locations, context) {
   }
 }
 
+//synchronous counterpart of ev_files
+//used by load_scripts so it matches the semantics of the in-game load_code,
+//which evaluates the loaded slot before returning to the caller
+function ev_files_sync(locations, context) {
+  for (let location of locations) {
+    let text = fs_sync.readFileSync(location, "utf8");
+    vm.runInContext(text + "\n//# sourceURL=file://" + location, context);
+  }
+}
+
+//AL's clone() gates on `instanceof Date/Array/Object`, which is unsound here:
+//the game and runner run in separate vm realms, so a game-realm object fails
+//every check and falls through to `throw "type not supported"`. Scripts hit this
+//by passing parent.G/parent.entities into runner-side AL functions.
+function patch_cross_realm_clone(context) {
+  vm.runInContext(
+    `
+    (function () {
+      const original = clone;
+      clone = function (obj, args) {
+        if (obj === null || typeof obj !== "object" || obj instanceof Object) {
+          return original(obj, args);
+        }
+        //recurse through this wrapper so nested values are handled too
+        if (!args) args = {};
+        if (!args.seen) args.seen = [];
+        args.seen.push(obj);
+        if (Object.prototype.toString.call(obj) === "[object Date]") {
+          const copy = new Date();
+          copy.setTime(obj.getTime());
+          return copy;
+        }
+        if (Array.isArray(obj)) {
+          const copy = [];
+          for (let i = 0; i < obj.length; i++) copy[i] = clone(obj[i], args);
+          return copy;
+        }
+        const copy = {};
+        for (const attr in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, attr)) {
+            copy[attr] =
+              args.seen.indexOf(obj[attr]) !== -1
+                ? "circular_attribute[clone]"
+                : clone(obj[attr], args);
+          }
+        }
+        return copy;
+      };
+    })();
+    `,
+    context,
+  );
+}
+
 async function make_runner(upper, CODE_file, version, is_typescript) {
   const runner_sources = game_files
     .get_runner_files()
@@ -99,6 +154,7 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
     runner_context,
   );
   await ev_files(runner_sources, runner_context);
+  patch_cross_realm_clone(runner_context);
   runner_context.send_cm = function (to, data) {
     process.send({
       type: "cm",
@@ -108,14 +164,17 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
   };
   upper.caracAL.ALPathfinder = await import("alpathfinder");
   //we need to do this here because of scoping
-  upper.caracAL.load_scripts = async function (locations) {
+  upper.caracAL.load_scripts = function (locations) {
     if (!is_typescript) {
-      return await ev_files(
+      ev_files_sync(
         locations.map((x) => "./CODE/" + x),
         runner_context,
       );
+      //the scripts are already evaluated by this point
+      //the promise is only here so existing .then() call sites keep working
+      return Promise.resolve();
     } else {
-      throw new Exception(
+      throw new Error(
         "Runtime Loading Code is not supported in Typescript Mode.\nUse an import instead",
       );
     }
@@ -182,6 +241,7 @@ async function make_game(proc_args) {
   game_context.io = io;
   game_context.bowser = {};
   await ev_files(game_sources, game_context);
+  patch_cross_realm_clone(game_context);
   game_context.VERSION = "" + game_context.G.version;
   game_context.Local = "";
   game_context.Dev = "";
@@ -234,13 +294,23 @@ async function make_game(proc_args) {
       ? "./TYPECODE.out/" + proc_args.typescript_file
       : "./CODE/" + proc_args.script_file;
     (async function () {
-      const runner_context = await make_runner(
-        game_context,
-        target_script,
-        proc_args.version,
-        is_typescript,
-      );
-      extensions.runner = runner_context;
+      try {
+        const runner_context = await make_runner(
+          game_context,
+          target_script,
+          proc_args.version,
+          is_typescript,
+        );
+        extensions.runner = runner_context;
+      } catch (exception) {
+        //without a runner the character is connected but inert, so take it down
+        console.error(
+          "failed to construct runner instance from %s:\n",
+          target_script,
+          exception,
+        );
+        process.send({ type: "shutdown" });
+      }
     })();
   };
   const old_dc = game_context.disconnect;
@@ -252,7 +322,16 @@ async function make_game(proc_args) {
   game_context.api_call = function (method, args, r_args) {
     //servers and characters are handled centrally
     if (method != "servers_and_characters") {
-      return old_api(method, args, r_args);
+      const call = old_api(method, args, r_args);
+      //the jsdom window holds no session cookie, so every /api call comes back
+      //not_logged_in. the game discards most of these results, which would
+      //surface as unhandledRejection noise - handle them here instead.
+      if (call && typeof call.catch == "function") {
+        call.catch((reason) =>
+          console.debug("api call %s failed", method, reason),
+        );
+      }
+      return call;
     } else {
       console.debug("filtered s&c call");
     }

@@ -184,10 +184,9 @@ if (parent.caracAL) {
     console.log(parent.caracAL.siblings);
   }
   if (we_want_to_load_an_additional_script) {
-    //get a promise for loading the script ./CODE/bonus_script.js
-    parent.caracAL
-      .load_scripts(["bonus_script.js"])
-      .then(() => console.log("the new script is loaded"));
+    //loads ./CODE/bonus_script.js, synchronously like the in-game load_code
+    parent.caracAL.load_scripts(["bonus_script.js"]);
+    console.log("the new script is loaded");
   }
 }
 ```
