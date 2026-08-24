@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       alpathfinder:
-        specifier: ^0.4.0
-        version: 0.4.4
+        specifier: ^0.4.7
+        version: 0.4.7
       bot-web-interface:
         specifier: github:mrdiamond12312/bot-web-interface
         version: https://codeload.github.com/mrdiamond12312/bot-web-interface/tar.gz/7fff0afab2bd14188ce7f42cd0802089601fef40
@@ -280,8 +280,8 @@ packages:
   ajv@8.20.0:
     resolution: {integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==}
 
-  alpathfinder@0.4.4:
-    resolution: {integrity: sha512-n8H+C1z15QxGLcLbrOJ4BP2WsjuYzQ60ys+C95sUhV1b6B/6AgsqV/I7/T/e2xUgE897aIxm4UL5uPg/5wtZNQ==}
+  alpathfinder@0.4.7:
+    resolution: {integrity: sha512-hAosj07+WuTN9YuSSZ38sOAp6baLgQcfObGlwA4EJE1z/RZik0xYjMV3p0Khvp+LYq2SHOZvWkoJZ5/3x6EXkQ==}
 
   ansi-escapes@4.3.2:
     resolution: {integrity: sha512-gKXj5ALrKWQLsYG9jlTRmR/xKluxHV+Z9QEwNIgCfM1/uwPMCuzVVnh5mwTd+OuBZcwSIMbqssNWRm1lE51QaQ==}
@@ -1845,7 +1845,7 @@ snapshots:
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
 
-  alpathfinder@0.4.4:
+  alpathfinder@0.4.7:
     dependencies:
       typed-adventureland: 0.0.55
 

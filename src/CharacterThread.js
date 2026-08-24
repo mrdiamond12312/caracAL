@@ -243,11 +243,6 @@ async function make_game(proc_args) {
   await ev_files(game_sources, game_context);
   patch_cross_realm_clone(game_context);
   game_context.VERSION = "" + game_context.G.version;
-  game_context.Local = "";
-  game_context.Dev = "";
-  game_context.Place = "code";
-  game_context.last_deploy = "";
-  game_context.is_tauri = "";
   game_context.server_address = "wss://" + proc_args.realm_address;
   game_context.server_path = proc_args.realm_path;
   game_context.server_port = proc_args.realm_port;
