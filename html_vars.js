@@ -30,6 +30,7 @@ var VERSION = "",
   Dev = "",
   Place = "code",
   last_deploy = "";
+var proximity_guides = true;
 var platform = "web";
 var engine_mode = "";
 var no_graphics = "1";
