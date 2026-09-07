@@ -25,6 +25,7 @@ function get_game_files() {
     "/js/old_common_functions.js",
     "/js/common_functions.js",
     "/js/functions.js",
+    "/js/merrit_stand_notice.js",
     "/js/game.js",
     "/js/html.js",
     "/js/payments.js",
