@@ -30,7 +30,7 @@ function get_game_files() {
     "/js/npc_obstruction_hint.js",
     "/js/tavern_poker.js",
     "/js/tavern_slots.js",
-    "/js/tavern_wheels.js",
+    "/js/tavern_wheel.js",
     "/js/merrit_stand_notice.js",
     "/js/phrases.js",
     "/js/game.js",
