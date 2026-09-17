@@ -17,6 +17,7 @@ function get_runner_files() {
     "/js/runner_compat.js",
   ];
 }
+
 function get_game_files() {
   return [
     "/js/pixi/fake/pixi.min.js",
@@ -25,6 +26,12 @@ function get_game_files() {
     "/js/old_common_functions.js",
     "/js/common_functions.js",
     "/js/functions.js",
+    "/js/generated_zones.js",
+    "/js/entity_animations.js",
+    "/js/npc_obstruction_hint.js",
+    "/js/tavern_poker.js",
+    "/js/tavern_slots.js",
+    "/js/tavern_wheels.js",
     "/js/merrit_stand_notice.js",
     "/js/phrases.js",
     "/js/game.js",
