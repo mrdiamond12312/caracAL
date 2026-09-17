@@ -208,10 +208,15 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
 }
 
 async function make_game(proc_args) {
-  const game_sources = game_files
-    .get_game_files()
-    .map((f) => game_files.locate_game_file(f, proc_args.version))
-    .concat(["./html_vars.js"]);
+  //the game files read html_vars.js as they evaluate, html_init.js calls back
+  //into them - hence the order
+  const game_sources = ["./html_vars.js"]
+    .concat(
+      game_files
+        .get_game_files()
+        .map((f) => game_files.locate_game_file(f, proc_args.version)),
+    )
+    .concat(["./html_init.js"]);
   console.log("constructing game instance");
   console.debug("source files:\n%s", game_sources);
   const game_context = make_context();
