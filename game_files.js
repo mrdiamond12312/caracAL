@@ -34,6 +34,7 @@ function get_game_files() {
     "/js/tavern_wheel.js",
     "/js/merrit_stand_notice.js",
     "/js/phrases.js",
+    "/phrases/en.js",
     "/js/game.js",
     "/js/html.js",
     "/js/payments.js",
