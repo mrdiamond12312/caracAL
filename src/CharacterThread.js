@@ -266,8 +266,8 @@ async function make_runner(upper, CODE_file, version, is_typescript) {
 }
 
 async function make_game(proc_args) {
-  //html_vars.js goes first because the game files read those vars while they
-  //are being evaluated, html_init.js goes last because it calls into them
+  //the game files read html_vars.js as they evaluate, html_init.js calls back
+  //into them - hence the order
   const game_sources = ["./html_vars.js"]
     .concat(
       game_files
