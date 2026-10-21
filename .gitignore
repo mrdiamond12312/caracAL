@@ -3,6 +3,7 @@
 !/logs/README.md
 /config.js
 /caracAL.service
+/.mcp.json
 /node_modules/
 /game_files/*
 !/game_files/README.md
@@ -11,7 +12,6 @@
 /agent-scratch/*
 !/agent-scratch/README.md
 .idea/
-/CODE/*
 !/CODE/README.md
 !/CODE/caracAL/
 /TYPECODE/*

@@ -2,6 +2,15 @@ const prettyMilliseconds = require("pretty-ms");
 const { PNG } = require("pngjs");
 const { STAT_BEAT_INTERVAL } = require("./src/CONSTANTS.js");
 const { max, min, abs, round, floor } = Math;
+const CLASS_TRANSFORMER = {
+  priest: "💉Priest",
+  warrior: "⚔️Warrior",
+  mage: "🧙✨Mage",
+  paladin: "🛡️Paladin",
+  ranger: "🏹👁️Ranger",
+  rogue: "🗡️💀Rogue",
+  merchant: "💸Merchant",
+};
 
 function humanize_int(num, digits) {
   num = round(num);
@@ -38,6 +47,9 @@ function register_stat_beat(g_con) {
       "party",
       "isize",
       "esize",
+      "cc",
+      "ping",
+      "ctype",
     ].forEach((x) => (result[x] = character[x]));
     const targeting = g_con.entities[character.target];
     result.t_mtype = (targeting && targeting.mtype) || null;
@@ -60,16 +72,20 @@ function create_monitor_ui(bwi, char_name, child_block, enable_map) {
   child_block.instance.on("message", (m) => {
     if (m.type == "stat_beat") {
       gold_histo.push(m.gold);
-      gold_histo = gold_histo.slice(-100);
+      gold_histo = gold_histo.slice(-2400);
       if (last_beat && last_beat.level != m.level) {
         xp_histo = [];
       }
       xp_histo.push(m.xp);
-      xp_histo = xp_histo.slice(-100);
+      xp_histo = xp_histo.slice(-2400);
       xp_ph = val_ph(xp_histo);
       last_beat = m;
     }
   });
+
+  function decimal_round(num) {
+    return Math.round(num * 100) / 100;
+  }
   function quick_bar_val(num, denom, humanize = false) {
     let modif = (x) => x;
     if (humanize) {
@@ -88,12 +104,29 @@ function create_monitor_ui(bwi, char_name, child_block, enable_map) {
     );
   }
   const schema = [
-    { name: "name", type: "text", label: "Name", getter: () => char_name },
+    {
+      name: "name",
+      type: "text",
+      label: "Name",
+      getter: () => char_name,
+    },
+    {
+      name: "class",
+      type: "text",
+      label: "Class",
+      getter: () => CLASS_TRANSFORMER[last_beat.ctype],
+    },
     {
       name: "realm",
       type: "text",
       label: "Realm",
       getter: () => child_block.realm,
+    },
+    {
+      name: "ping",
+      type: "text",
+      label: "Ping",
+      getter: () => decimal_round(last_beat.ping),
     },
     {
       name: "not_rip",
@@ -105,28 +138,38 @@ function create_monitor_ui(bwi, char_name, child_block, enable_map) {
       name: "level",
       type: "text",
       label: "Level",
-      getter: () => last_beat.level,
+      getter: () =>
+        `${last_beat.level} + ${decimal_round(
+          (last_beat.xp / last_beat.max_xp) * 100,
+        )}%`,
     },
     {
       name: "health",
       type: "labelProgressBar",
       label: "Health",
-      options: { color: "red" },
+      options: { color: "#f20089" },
       getter: () => quick_bar_val(last_beat.hp, last_beat.max_hp),
     },
     {
       name: "mana",
       type: "labelProgressBar",
       label: "Mana",
-      options: { color: "blue" },
+      options: { color: "#2d00f7" },
       getter: () => quick_bar_val(last_beat.mp, last_beat.max_mp),
     },
     {
       name: "xp",
       type: "labelProgressBar",
       label: "XP",
-      options: { color: "green" },
+      options: { color: "#1dd3b0" },
       getter: () => quick_bar_val(last_beat.xp, last_beat.max_xp, true),
+    },
+    {
+      name: "codecost",
+      type: "labelProgressBar",
+      label: "CC",
+      options: { color: "#5465ff" },
+      getter: () => quick_bar_val(last_beat.cc, 200, true),
     },
     {
       name: "inv",
@@ -140,7 +183,7 @@ function create_monitor_ui(bwi, char_name, child_block, enable_map) {
       name: "gold",
       type: "text",
       label: "Gold",
-      getter: () => humanize_int(last_beat.gold, 1),
+      getter: () => last_beat.gold.toLocaleString("en-US"),
     },
     {
       name: "party_leader",
@@ -207,6 +250,7 @@ function create_monitor_ui(bwi, char_name, child_block, enable_map) {
   ui.setDataSource(() => {
     if (!last_beat) {
       return {
+        class: "❓Unknown",
         name: char_name,
         realm: child_block.realm,
         not_rip: "Hopefully",

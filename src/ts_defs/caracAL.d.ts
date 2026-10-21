@@ -39,11 +39,13 @@ declare global {
       siblings: string[];
 
       /**
-       * load one or more additional scripts
+       * load one or more additional scripts, synchronously like the in-game
+       * `load_code`. The returned promise is already resolved, and only kept
+       * so existing `.then()` call sites keep working.
        * @param scripts
-       * @example <caption>get a promise for loading the script ./CODE/bonus_script.js</caption>
-       * parent.caracAL.load_scripts(["bonus_script.js"])
-       * .then(()=>console.log("the new script is loaded"));
+       * @example <caption>loads ./CODE/bonus_script.js</caption>
+       * parent.caracAL.load_scripts(["bonus_script.js"]);
+       * console.log("the new script is loaded");
        */
       load_scripts(scripts: string[]): Promise<void>;
     };

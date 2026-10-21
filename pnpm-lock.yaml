@@ -6,6 +6,9 @@ importers:
   .:
     configDependencies: {}
     packageManagerDependencies:
+      '@pnpm/exe':
+        specifier: 12.14.0
+        version: 12.14.0
       pnpm:
         specifier: 12.14.0
         version: 12.14.0
@@ -89,6 +92,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@pnpm/exe@12.14.0':
+    resolution: {integrity: sha512-iZCbiKegYUapNVkZY4O8vjXt9EF/j34LbDvew6qUM5g/HrxMY38cFJaoE8+5ZWQfbt2YCsLfufI5TTh+GxUbWw==}
+    engines: {node: '>=18.*'}
+    hasBin: true
+
   pnpm@12.14.0:
     resolution: {integrity: sha512-wYum2HmT09Fky16JSPMrLAbuhUSH4GzY2GeBNC+z5btGNDZwNHEehoArqpw3vqkGzhkprQjXCITJfYAd8TOJpg==}
     engines: {node: '>=18.*'}
@@ -138,6 +146,23 @@ snapshots:
   '@pnpm/exe.win32-x64@12.14.0':
     optional: true
 
+  '@pnpm/exe@12.14.0':
+    optionalDependencies:
+      '@pnpm/exe.android-arm64': 12.14.0
+      '@pnpm/exe.android-x64': 12.14.0
+      '@pnpm/exe.darwin-arm64': 12.14.0
+      '@pnpm/exe.darwin-x64': 12.14.0
+      '@pnpm/exe.freebsd-x64': 12.14.0
+      '@pnpm/exe.linux-arm64': 12.14.0
+      '@pnpm/exe.linux-arm64-musl': 12.14.0
+      '@pnpm/exe.linux-ppc64': 12.14.0
+      '@pnpm/exe.linux-riscv64': 12.14.0
+      '@pnpm/exe.linux-s390x': 12.14.0
+      '@pnpm/exe.linux-x64': 12.14.0
+      '@pnpm/exe.linux-x64-musl': 12.14.0
+      '@pnpm/exe.win32-arm64': 12.14.0
+      '@pnpm/exe.win32-x64': 12.14.0
+
   pnpm@12.14.0:
     optionalDependencies:
       '@pnpm/exe.android-arm64': 12.14.0
@@ -166,9 +191,12 @@ importers:
 
   .:
     dependencies:
+      alpathfinder:
+        specifier: ^0.4.7
+        version: 0.4.8
       bot-web-interface:
-        specifier: ^2.0.14
-        version: 2.0.14(supports-color@8.1.1)
+        specifier: github:mrdiamond12312/bot-web-interface
+        version: https://codeload.github.com/mrdiamond12312/bot-web-interface/tar.gz/7fff0afab2bd14188ce7f42cd0802089601fef40(supports-color@8.1.1)
       cloneable-readable:
         specifier: ^3.0.0
         version: 3.0.0
@@ -223,6 +251,9 @@ importers:
       typescript:
         specifier: ^5.2.2
         version: 5.9.3
+      undici:
+        specifier: ^7.10.0
+        version: 7.30.0
       webpack:
         specifier: ^5.89.0
         version: 5.111.1(webpack-cli@5.1.4)
@@ -430,6 +461,9 @@ packages:
   ajv@8.20.0:
     resolution: {integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==}
 
+  alpathfinder@0.4.8:
+    resolution: {integrity: sha512-mw78S6h2mFW4gDSqrz9n4ov3hguk05rixh/u53zI8MlgC0/AQTR9Q2+6hpNUA1kxjWSkTrUia5YKMvs+fjvyhA==}
+
   ansi-escapes@4.3.2:
     resolution: {integrity: sha512-gKXj5ALrKWQLsYG9jlTRmR/xKluxHV+Z9QEwNIgCfM1/uwPMCuzVVnh5mwTd+OuBZcwSIMbqssNWRm1lE51QaQ==}
     engines: {node: '>=8'}
@@ -470,8 +504,9 @@ packages:
     resolution: {integrity: sha512-JNcyFQ64OiijEkPzUBTCe+hyPXUD/3LEldGQ6iF5LR1w00mx9o7xtDWHXBY2iItjdCFGoilOLNQbH943ut7pHA==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
 
-  bot-web-interface@2.0.14:
-    resolution: {integrity: sha512-p1v8gtneM4Jy3aRbY9m5z3YABRgcpzYVbyUNMEgjv6GwOcaqUdk6zAUdINiz/mZYO9pekGxQ58dMNybdkNwsoA==}
+  bot-web-interface@https://codeload.github.com/mrdiamond12312/bot-web-interface/tar.gz/7fff0afab2bd14188ce7f42cd0802089601fef40:
+    resolution: {gitHosted: true, integrity: sha512-QE6cqnNwhKLesS/6xy5WVCQnES9Vhl+ndc1WN1cUZcqF3joubQi9Wp1jVub/XmnESRBmV5dVrOeKpbM5FIo2TQ==, tarball: https://codeload.github.com/mrdiamond12312/bot-web-interface/tar.gz/7fff0afab2bd14188ce7f42cd0802089601fef40}
+    version: 2.0.14
 
   brace-expansion@1.1.21:
     resolution: {integrity: sha512-9zeA+KLZNNzglF2TPKRQEDyx6Yby7daAkuy8MiPzpXPsYDWi/DRM8jmwUDxokQjYqBpv5DgPiwD4h4ZZSy1Ujw==}
@@ -1667,6 +1702,9 @@ packages:
   typed-adventureland@0.0.43:
     resolution: {integrity: sha512-R9ISqaEOW2kLRrfWdjHzuVVxGMzYwcDFcoBfnqJ+Ahd/P5Hv83MnS3nj8LUkpFKCxCeKn6oIjRIo2KRufgikXQ==}
 
+  typed-adventureland@0.0.55:
+    resolution: {integrity: sha512-PvSW71OlsbXQDuQoVaca8zv6OqxIwbCmUTiH/2RMzANao9gwKabTXDjiefx7zS2tsAM9zH7VjQeTbIHmtbtDIA==}
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
@@ -1674,6 +1712,10 @@ packages:
 
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
+
+  undici@7.30.0:
+    resolution: {integrity: sha512-dkrQXeHSaoamnItlYbmzG0wFYrM0ZwDxCIg0A7aKjTyyhh9svRzCNFEzV+Vm05/yehjCzjDZ31KXfGEjYSztDQ==}
+    engines: {node: '>=20.18.1'}
 
   universalify@0.2.0:
     resolution: {integrity: sha512-CJ1QgKmNg3CwvAv/kOFmtnEN05f0D/cn9QntgNOQlQF9dgvVTHj3t+8JPdjqawCHk7V/KA+fbUqzZ9XWhcqPUg==}
@@ -2064,6 +2106,10 @@ snapshots:
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
 
+  alpathfinder@0.4.8:
+    dependencies:
+      typed-adventureland: 0.0.55
+
   ansi-escapes@4.3.2:
     dependencies:
       type-fest: 0.21.3
@@ -2109,7 +2155,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  bot-web-interface@2.0.14(supports-color@8.1.1):
+  bot-web-interface@https://codeload.github.com/mrdiamond12312/bot-web-interface/tar.gz/7fff0afab2bd14188ce7f42cd0802089601fef40(supports-color@8.1.1):
     dependencies:
       express: 4.22.3(supports-color@8.1.1)
       extend: 3.0.2
@@ -3207,9 +3253,17 @@ snapshots:
       '@types/pixi.js': 4.8.2
       '@types/socket.io': 1.4.42
 
+  typed-adventureland@0.0.55:
+    dependencies:
+      '@types/jquery': 3.2.0
+      '@types/pixi.js': 4.8.2
+      '@types/socket.io': 1.4.42
+
   typescript@5.9.3: {}
 
   undici-types@8.9.0: {}
+
+  undici@7.30.0: {}
 
   universalify@0.2.0: {}
 

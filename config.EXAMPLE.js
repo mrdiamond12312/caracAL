@@ -9,7 +9,7 @@ module.exports = {
   cull_versions: true,
   //If you want caracAL to compile TypeScript and use the TYPECODE folder
   //This works by running Webpack in the background
-  enable_TYPECODE: true,
+  // enable_TYPECODE: false,
   //how much logging you want
   //set to "debug" for more logging and "warn" for less logging
   log_level: "info",
