@@ -9,6 +9,8 @@
 !/game_files/README.md
 /localStorage/*
 !/localStorage/README.md
+/agent-scratch/*
+!/agent-scratch/README.md
 .idea/
 !/CODE/README.md
 !/CODE/caracAL/
