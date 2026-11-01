@@ -159,17 +159,15 @@ function run_game_code(description, fn) {
   }
 }
 
-function make_handler_safe_io(io) {
-  return Object.assign(function (...args) {
-    const socket = io(...args);
-    const emit_event = socket.emitEvent;
-    socket.emitEvent = function (event_args) {
-      return run_game_code(`game "${event_args[0]}" handler`, () =>
-        emit_event.call(this, event_args),
-      );
-    };
-    return socket;
-  }, io);
+//wrapped on the prototype so every socket is covered, however the game opens
+//it (io(), io.connect(), a Manager); emitEvent dispatches all incoming events
+function make_socket_handlers_safe(io) {
+  const emit_event = io.Socket.prototype.emitEvent;
+  io.Socket.prototype.emitEvent = function (event_args) {
+    return run_game_code(`game "${event_args[0]}" handler`, () =>
+      emit_event.call(this, event_args),
+    );
+  };
 }
 
 async function make_runner(upper, CODE_file, version, is_typescript) {
@@ -303,7 +301,8 @@ async function make_game(proc_args) {
   console.log("constructing game instance");
   console.debug("source files:\n%s", game_sources);
   const game_context = make_context();
-  game_context.io = make_handler_safe_io(io);
+  make_socket_handlers_safe(io);
+  game_context.io = io;
   game_context.bowser = {};
   await ev_files(game_sources, game_context);
   patch_cross_realm_clone(game_context);
