@@ -15,6 +15,9 @@ module.exports = {
   login_turn_slots: 1,
   //with more than one slot, the least milliseconds between two logins starting
   login_turn_stagger_ms: 500,
+  //log in as soon as the map is loaded instead of waiting for the first entities
+  //about a second faster per login, turn off if characters fail to start
+  early_login: false,
   //how much logging you want
   //set to "debug" for more logging and "warn" for less logging
   log_level: "info",

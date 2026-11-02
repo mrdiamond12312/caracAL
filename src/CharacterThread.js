@@ -498,6 +498,25 @@ async function make_game(proc_args) {
       }
     }),
   );
+  //log in as soon as the map is up, like ALClient, instead of waiting for the
+  //server's first entities - the socket stays loose for about a second less
+  if (proc_args.early_login) {
+    const old_launch_game = game_context.launch_game;
+    game_context.launch_game = function () {
+      old_launch_game();
+      const character = game_context.character_to_load;
+      if (!character) return;
+      //cleared like the client does, so the first entities do not log in again
+      game_context.character_to_load = false;
+      run_game_code("early log_in", () =>
+        game_context.log_in(
+          game_context.user_id,
+          character,
+          game_context.user_auth,
+        ),
+      );
+    };
+  }
   //the socket opens in the_game(), everything before still runs in parallel
   await await_login_turn();
   vm.runInContext("the_game()", game_context);
