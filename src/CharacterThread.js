@@ -498,23 +498,37 @@ async function make_game(proc_args) {
       }
     }),
   );
-  //log in as soon as the map is up, like ALClient, instead of waiting for the
-  //server's first entities - the socket stays loose for about a second less
+  //log in right at welcome, like ALClient, so the server authenticates while
+  //the client builds the map instead of after it and the first entities
   if (proc_args.early_login) {
     const old_launch_game = game_context.launch_game;
     game_context.launch_game = function () {
-      old_launch_game();
       const character = game_context.character_to_load;
-      if (!character) return;
-      //cleared like the client does, so the first entities do not log in again
-      game_context.character_to_load = false;
-      run_game_code("early log_in", () =>
-        game_context.log_in(
-          game_context.user_id,
-          character,
-          game_context.user_auth,
-        ),
-      );
+      if (character) {
+        //cleared like the client does, so the first entities do not log in again
+        game_context.character_to_load = false;
+        //log_in needs game_loaded, the server needs loaded before auth
+        //the client's own loaded below is then ignored by the server
+        game_context.game_loaded = true;
+        game_context.socket.emit("loaded", {
+          success: 1,
+          width: game_context.screen.width,
+          height: game_context.screen.height,
+          scale: game_context.scale,
+        });
+        try {
+          game_context.log_in(
+            game_context.user_id,
+            character,
+            game_context.user_auth,
+          );
+        } catch (exception) {
+          //fall back to the client logging in on its first entities
+          console.error("early log_in threw", exception);
+          game_context.character_to_load = character;
+        }
+      }
+      old_launch_game();
     };
   }
   //the socket opens in the_game(), everything before still runs in parallel
