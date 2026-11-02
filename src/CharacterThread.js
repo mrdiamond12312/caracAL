@@ -534,6 +534,11 @@ async function make_game(proc_args) {
   //the socket opens in the_game(), everything before still runs in parallel
   await await_login_turn();
   vm.runInContext("the_game()", game_context);
+  //the server makes us a player before it sends start, so the socket stops
+  //counting as loose here - the turn is not needed while the client settles
+  if (game_context.socket) {
+    game_context.socket.once("start", release_login_turn);
+  }
   const reload_timeout = 30;
   const reload_task = setTimeout(
     function () {
