@@ -170,6 +170,23 @@ function make_socket_handlers_safe(io) {
   };
 }
 
+//every socket that is not logged in counts towards the server's loose connection limit
+function log_socket_connections(io) {
+  const describe = (socket) => `${socket.io.uri}${socket.io.opts.path}`;
+  const onconnect = io.Socket.prototype.onconnect;
+  io.Socket.prototype.onconnect = function (id, ...rest) {
+    console.log(`game socket ${id} connected to ${describe(this)}`);
+    return onconnect.call(this, id, ...rest);
+  };
+  const onclose = io.Socket.prototype.onclose;
+  io.Socket.prototype.onclose = function (reason, ...rest) {
+    console.log(
+      `game socket ${this.id} to ${describe(this)} closed: ${reason}`,
+    );
+    return onclose.call(this, reason, ...rest);
+  };
+}
+
 //the coordinator lets one character per account log in at a time
 function await_login_turn() {
   return new Promise((resolve) => {
@@ -320,6 +337,7 @@ async function make_game(proc_args) {
   console.debug("source files:\n%s", game_sources);
   const game_context = make_context();
   make_socket_handlers_safe(io);
+  log_socket_connections(io);
   game_context.io = io;
   game_context.bowser = {};
   await ev_files(game_sources, game_context);
