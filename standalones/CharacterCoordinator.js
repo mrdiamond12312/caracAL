@@ -152,10 +152,20 @@ function migrate_old_storage(path, localStorage) {
       `login_turn_slots ${cfg.login_turn_slots} is not between 1 and ${LOGIN_TURN_MAX_SLOTS}`,
     );
   }
-  console.log(`up to ${login_turn_slots} characters log in at the same time`);
+  //least time between two logins starting, only matters with more than one slot
+  const login_turn_stagger_ms = Math.max(
+    Number(cfg.login_turn_stagger_ms) || 0,
+    0,
+  );
+  console.log(
+    `up to ${login_turn_slots} characters log in at the same time` +
+      (login_turn_stagger_ms > 0 ? `, ${login_turn_stagger_ms}ms apart` : ""),
+  );
   const login_turn = {
     holders: [], //[{char_name, proc, granted_at, timer}]
     queue: [], //[{char_name, proc}]
+    last_granted_at: 0,
+    stagger_timer: null,
   };
 
   function login_turn_grant_next() {
@@ -163,7 +173,19 @@ function migrate_old_storage(path, localStorage) {
       login_turn.holders.length < login_turn_slots &&
       login_turn.queue.length > 0
     ) {
+      const wait =
+        login_turn.last_granted_at + login_turn_stagger_ms - Date.now();
+      if (wait > 0) {
+        if (!login_turn.stagger_timer) {
+          login_turn.stagger_timer = setTimeout(() => {
+            login_turn.stagger_timer = null;
+            login_turn_grant_next();
+          }, wait);
+        }
+        return;
+      }
       const holder = { ...login_turn.queue.shift(), granted_at: Date.now() };
+      login_turn.last_granted_at = holder.granted_at;
       holder.timer = setTimeout(() => {
         const seconds = LOGIN_TURN_TIMEOUT / 1000;
         console.warn(
