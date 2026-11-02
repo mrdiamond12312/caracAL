@@ -462,8 +462,12 @@ function migrate_old_storage(path, localStorage) {
   }
   //TODO beta new logic for #5
   //i need to implement decent lifecycle-handling
+  let shutting_down = false;
   ["SIGINT", "SIGTERM", "SIGQUIT"].forEach((signal) =>
     process.on(signal, async () => {
+      //a Ctrl+C arrives twice, from the terminal and forwarded by main.js
+      if (shutting_down) return;
+      shutting_down = true;
       console.log(`Received ${signal} on master. Rounding up clients`);
       //softkill all chars, giving them chance to shutdown
       await Promise.all(

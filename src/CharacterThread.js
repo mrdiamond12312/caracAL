@@ -17,6 +17,9 @@ process.on("unhandledRejection", function (exception) {
   console.warn("promise rejected: \n", exception);
 });
 
+//the coordinator is gone, nothing would ever stop this character
+process.on("disconnect", () => process.exit());
+
 const html_spoof = `<!DOCTYPE html>
 <html>
 <head>

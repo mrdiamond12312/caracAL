@@ -38,20 +38,21 @@ async function get_webpack_started(cfg) {
       wp_seed.on("close", resolve);
     });
     console.log("Initial WebPack is done");
-    wp_seed = StreamMultiplexer.setup_log_pipes(
+    return StreamMultiplexer.setup_log_pipes(
       webpack_log_output,
       "./node_modules/webpack/bin/webpack",
       "--no-color",
       "--watch",
     );
   }
+  return null;
 }
 
 (async () => {
   await ConfigUtil.interactive();
 
   const cfg = require("./config");
-  await get_webpack_started(cfg);
+  const webpack_watch = await get_webpack_started(cfg);
 
   const log_sinks = cfg.log_sinks || [
     [
@@ -65,5 +66,25 @@ async function get_webpack_started(cfg) {
     ],
     ["node", "./standalones/LogPrinter.js"],
   ];
-  StreamMultiplexer.setup_log_pipes(log_sinks, COORDINATOR_MODULE_PATH);
+  const coordinator = StreamMultiplexer.setup_log_pipes(
+    log_sinks,
+    COORDINATOR_MODULE_PATH,
+  );
+  //the coordinator logs the characters out, so pass signals on and outlive it
+  //we exit once its output has drained into the log sinks
+  //a second signal gives up on that, the characters exit with the coordinator
+  let signalled = false;
+  ["SIGINT", "SIGTERM", "SIGQUIT"].forEach((signal) =>
+    process.on(signal, () => {
+      if (signalled) {
+        coordinator.kill("SIGKILL");
+        process.exit(1);
+      }
+      signalled = true;
+      coordinator.kill(signal);
+    }),
+  );
+  coordinator.on("exit", () => {
+    if (webpack_watch) webpack_watch.kill();
+  });
 })();

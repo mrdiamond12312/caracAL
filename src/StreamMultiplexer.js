@@ -4,14 +4,24 @@ const { pipeline } = require("node:stream");
 const cloneable = require("cloneable-readable");
 
 function spawn_sink(command, ...args) {
+  return spawn_with(command, args, {});
+}
+
+//a log sink gets its own process group on posix so a Ctrl+C in the terminal
+//does not end it before the coordinator's last lines, it ends with its input
+//not on windows, where a detached process opens its own console window
+function spawn_log_sink(command, ...args) {
+  return spawn_with(command, args, {
+    detached: process.platform !== "win32",
+  });
+}
+
+function spawn_with(command, args, options) {
+  const stdio = ["pipe", "inherit", "inherit", "ipc"];
   if (command === "node") {
-    return fork(args[0], args.slice(1), {
-      stdio: ["pipe", "inherit", "inherit", "ipc"],
-    });
+    return fork(args[0], args.slice(1), { stdio, ...options });
   } else {
-    return spawn(command, args, {
-      stdio: ["pipe", "inherit", "inherit", "ipc"],
-    });
+    return spawn(command, args, { stdio, ...options });
   }
 }
 
@@ -30,7 +40,7 @@ function redirect_into_process(stdout, stderr, target_proc) {
 
 function setup_log_pipes(log_sinks, module_path, ...args) {
   const log_sink_processes = log_sinks.map((command) =>
-    command ? spawn_sink(...command) : null,
+    command ? spawn_log_sink(...command) : null,
   );
 
   const runner = fork(module_path, args, {
